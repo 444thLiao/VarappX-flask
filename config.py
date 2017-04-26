@@ -21,7 +21,7 @@ class Config:
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
     SQLITE_DB_PATH = './resources/db'
-    DB_TEST = 'NY-7.mt2.db'
+    DB_TEST = 'demo_mini.db'
 
     CACHE_TYPE = 'redis'
     CACHE_REDIS_HOST ='127.0.0.1'

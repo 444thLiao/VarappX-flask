@@ -6,7 +6,7 @@ backup/
 
 config.py
 *.pyc
-
+*.db
 build
 dist
 

@@ -153,10 +153,13 @@ def change_password(request, new_password=None, email_to_file=None):
     id_token = JWT_user(user, TOKEN_DURATION)
     return jsonify({'id_token': id_token})
 
-
-def change_attribute(request, user=None, **kwargs):
+@main.route('/changeAttribute', methods=['OPTIONS', 'POST','GET'])
+@cors_handle
+def change_attribute(user=None, **kwargs):
     """Change a user attribute such as email, role, etc."""
     from varappx.main.view_tools import authenticate as auth
+    if auto_process_OPTIONS(request):
+        return auto_process_OPTIONS(request)
     username = request.form['username']
     code = request.form['code']
     attribute = request.form['attribute']
@@ -177,11 +180,14 @@ def change_attribute(request, user=None, **kwargs):
     id_token = JWT_user(user, TOKEN_DURATION)
     return jsonify({'id_token': id_token})
 
-
-def user_activation(request, email_to_file=None, **kwargs):
+@main.route('/userActivation', methods=['OPTIONS', 'POST','GET'])
+@cors_handle
+def user_activation(email_to_file=None, **kwargs):
     """Activate a user's account"""
     from varappx.main.view_tools import authenticate as auth
     #logger.info("Activate/deactivate user")
+    if auto_process_OPTIONS(request):
+        return auto_process_OPTIONS(request)
     username = request.form['username']
     code = request.form['code']
     email = request.form['email']
@@ -189,19 +195,24 @@ def user_activation(request, email_to_file=None, **kwargs):
     auth.user_activation(username, code, email, activate, email_to_file)
     return Response('')
 
-
+@main.route('/deleteUser', methods=['OPTIONS', 'POST','GET'])
+@cors_handle
 def delete_user(request, **kwargs):
     from varappx.main.view_tools import authenticate as auth
     #logger.info("Delete user")
-
+    if auto_process_OPTIONS(request):
+        return auto_process_OPTIONS(request)
     username = request.form['username']
     code = request.form['code']
     auth.delete_user(username, code)
     return Response('')
 
-
+@main.route('/attributeDb', methods=['OPTIONS', 'POST','GET'])
+@cors_handle
 def attribute_db(request, user=None, **kwargs):
     from varappx.main.view_tools import authenticate as auth
+    if auto_process_OPTIONS(request):
+        return auto_process_OPTIONS(request)
     username = request.form['username']
     code = request.form['code']
     dbname = request.form['dbname']

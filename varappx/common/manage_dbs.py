@@ -41,22 +41,22 @@ def activate_deactivate_at_gemini_path():
     iter_vdbs = {}
     for _vdb in vdbs:
         if _vdb.filename not in iter_vdbs:
-            iter_vdbs[_vdb.filename] = []
+            iter_vdbs[_vdb.filename] = [_vdb]
         else:
             iter_vdbs[_vdb.filename].append(_vdb)
 
     for filename, vdbs_group in iter_vdbs.items():
-        vdb = vdbs[-1]
+        vdb = vdbs_group[-1]
         if is_test_vdb(vdb):
             continue
         expected_path = os.path.join(SQLITE_DB_PATH, vdb.filename)
         if is_valid_vdb(vdb, path=expected_path):
             if not vdb.is_active:
-                logger.debug("(+) Activating '[{}]{}'.".format(vdb.pk, vdb.name))
+                logger.debug("(+) Activating '[{}]{}'.".format(vdb.id, vdb.name))
                 add_db(vdb)
         else:
             if vdb.is_active:
-                logger.debug("(-) Deactivating '[{}]{}'.".format(vdb.pk, vdb.name))
+                logger.debug("(-) Deactivating '[{}]{}'.".format(vdb.id, vdb.name))
                 remove_db(vdb)
 
 def copy_VariantsDb_to_settings():

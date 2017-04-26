@@ -84,14 +84,17 @@ def remove_db_from_cache(dbname):
 
 def add_db(vdb:VariantsDb):
     """Add that db to settings, connections, and activate it"""
+    from varappx.handle_init import db
     vdb.is_active = 1
-    vdb.save()
+    db.session.add(vdb)
+    db.session.commit()
     add_db_to_settings(vdb.name, vdb.filename)
 
 def remove_db(vdb:VariantsDb):
     """Remove that db from settings, connections, cache, and deactivate it."""
     vdb.is_active = 0
-    vdb.save()
+    db.session.add(vdb)
+    db.session.commit()
     remove_db_from_settings(vdb.name)
     remove_db_from_cache(vdb.name)
 
