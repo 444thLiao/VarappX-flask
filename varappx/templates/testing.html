@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://cdn.static.runoob.com/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Hello, {{ name }}!</h1>
+    <form action="">
+<button id="button1">Click me!</button>
+    </form>
+    <script>
+        $("#button1").on("click",function () {
+            $.ajax({type:"POST",url:"http://localhost:5000/varapp/authenticate",data:{"name": "hsgao"}})
+        })
+
+    </script>
+</body>
+</html>

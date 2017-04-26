@@ -1,0 +1,115 @@
+[
+    {
+        "model": "People",
+        "pk": 1,
+        "fields": {
+            "firstname": "Tianhua",
+            "lastname": "Liao",
+            "institution": "",
+            "street": "",
+            "city": "",
+            "phone": "",
+            "is_laboratory": 0,
+            "laboratory": ""
+        }
+    },
+
+
+    {
+        "model": "Roles",
+        "pk": 1,
+        "fields": {
+            "name": "superuser",
+            "rank": 1,
+            "can_validate_user": 1,
+            "can_delete_user": 1
+        }
+    },
+    {
+        "model": "Roles",
+        "pk": 2,
+        "fields": {
+            "name": "admin",
+            "rank": 2,
+            "can_validate_user": 1,
+            "can_delete_user": 0
+        }
+    },
+    {
+        "model": "Roles",
+        "pk": 3,
+        "fields": {
+            "name": "head",
+            "rank": 3,
+            "can_validate_user": 1,
+            "can_delete_user": 0
+        }
+    },
+    {
+        "model": "Roles",
+        "pk": 4,
+        "fields": {
+            "name": "user",
+            "rank": 4,
+            "can_validate_user": 0,
+            "can_delete_user": 0
+        }
+    },
+    {
+        "model": "Roles",
+        "pk": 5,
+        "fields": {
+            "name": "demo",
+            "rank": 5,
+            "can_validate_user": 0,
+            "can_delete_user": 0
+        }
+    },
+
+
+    {
+        "model": "Users",
+        "pk": 1,
+        "fields": {
+            "username": "admin",
+            "password": "abOV.DfJmdnYw",
+            "salt": "pbkdf2:sha1:1000$ihTmdN3r$4dbe76468525ef54f0e8d70dbfbce910d48e9214",
+            "email": "l0404th@gmail.com",
+            "code": "admin",
+            "activation_code": null,
+            "is_active": 1,
+            "is_password_reset": null,
+            "person_id": 1,
+            "role_id": 1
+        }
+    },
+
+
+    {
+        "model": "VariantsDb",
+        "pk": 1,
+        "fields": {
+            "name": "demo_mini",
+            "visible_name": "demo_mini",
+            "filename": "demo_mini.db",
+            "location": "resources/db/",
+            "hash": "e25b76e60082485158292750c239a2d255b742eb",
+            "description": "Daemon db for test",
+            "size": null,
+            "is_active": 1,
+            "parent_db_id": null
+        }
+    },
+
+    {
+        "model": "DbAccess",
+        "pk": 1,
+        "fields": {
+            "is_active": 1,
+            "user_id": 1,
+            "variants_db_id": 1
+        }
+    }
+]
+
+

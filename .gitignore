@@ -1,0 +1,13 @@
+
+dist/
+backup/
+.sass-cache/
+.idea
+
+config.py
+*.pyc
+
+build
+dist
+
+
