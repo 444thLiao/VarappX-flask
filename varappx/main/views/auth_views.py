@@ -2,8 +2,8 @@ from varappx.handle_config import settings
 from flask import render_template, request, Response, jsonify
 from flask_login import login_required, login_user
 from functools import wraps
-from flask import make_response,abort
-
+from flask import make_response,abort,redirect,flash
+from varappx import login_manager
 from .. import main
 
 DAY_IN_SECONDS = 86400
@@ -26,7 +26,6 @@ def add_response_headers(headers={}):
         return decorated_function
 
     return decorator
-
 
 def cors_handle(f):
     """This decorator passes X-Robots-Tag: noindex"""
@@ -61,80 +60,36 @@ def auto_process_OPTIONS(request):
             resp.headers.setdefault(_k, _v)
         return resp
 
-class protected:
-    """Decorator to force a view to verify the JWT and the existence of the user in the db.
-    If the JWT is validated, anyway it was issued here with a valid user,
-    but we can check he *still* exists and still has access to that db.
-    Protected views can make use of the 'user' keyword argument, binding the User calling the view.
-    """
-
-
-    def __init__(self, view, level=999):
-        """:param level: if the user's rank is greater than this, the user cannot access the view."""
-        self.view = view
-        self.level = level
-
-    def __call__(self, request, **kwargs):
-        # Check the token validity
-        import varappx.main.view_tools.authenticate as auth
-        from varappx.models.users import VariantsDb
-        from varappx.common.manage_dbs import deactivate_if_not_found_on_disk,update_if_db_changed
-        auth_header = request.environ.get('HTTP_AUTHORIZATION')
-        payload,msg = auth.verify_jwt(auth_header, SECRET_KEY)
-        if payload is None:
-            return abort(msg)
-        ## Check that the user exists
-        username = payload['username']
-        code = payload['code']
-        if not auth.check_user_exists(username, code):
-            return abort(
-                "No account was found with username '{}'.".format(payload['username'])
-            )
-        user = auth.find_user(username, code)
-        # Check user role
-        if user.role.rank > self.level:
-            return abort("This action requires higher credentials")
-        # Check db access
-        if kwargs.get('db'):
-            dbname = kwargs['db']
-            vdb = VariantsDb.query.filter_by(name=dbname, is_active=1).first()
-            if vdb is None:
-                return abort(
-                    "Database '{}' does not exist or is not active anymore.".format(dbname))
-            deac = deactivate_if_not_found_on_disk(vdb)
-            if deac:
-                return abort(
-                    "Database '{}' was not found on disk and deactivated.".format(dbname))
-            changed = update_if_db_changed(vdb)
-            if changed:
-                return abort(
-                    "Database '{}' has been modified. Please reload.".format(dbname))
-            if not auth.check_can_access_db(user, dbname):
-                return abort(
-                    "User '{}' has no database called '{}'.".format(username, dbname))
-        kwargs['user'] = user
-        return self.view(request, **kwargs)
-
-
-@main.route('/authenticate', methods=['OPTIONS', 'POST'])
+@main.route('/authenticate', methods=['OPTIONS', 'POST','GET'])
 @cors_handle
 def authenticate():
     from varappx.main.view_tools.authenticate import check_credentials
+    from varappx.main.view_tools.authenticate import verify_jwt, find_user
     if auto_process_OPTIONS(request):
         return auto_process_OPTIONS(request)
-    if request.method == 'POST':
+    if 'next' in request.args.keys():
+        auth_header = request.environ.get('HTTP_AUTHORIZATION')
+        payload, msg = verify_jwt(auth_header, SECRET_KEY)
+        if payload:
+            user = find_user(payload['username'], payload['code'], require_active=False)
+            login_user(user, remember=True)
+            next = request.args.get('next')
+            return redirect(next)
+        else:
+            return render_template('404.html'), 404
+    if request.method != 'OPTIONS':
         usersname = request.form['username']
         passwords = request.form['password']
         user, msgs = check_credentials(usersname, passwords)
         if not user:
             pass
         else:
+            #print(user)
             login_user(user, remember=True)
             id_token = JWT_user(user, TOKEN_DURATION)
             return jsonify({'id_token': id_token})
 
     return render_template('index.html')
-
 
 
 @main.route('/renew_token', methods=['OPTIONS', 'POST', 'GET'])
@@ -152,3 +107,6 @@ def renew_token():
     user = find_user(payload['username'], payload['code'], require_active=False)
     id_token = JWT_user(user, TOKEN_DURATION)
     return jsonify({'id_token': id_token})
+
+
+

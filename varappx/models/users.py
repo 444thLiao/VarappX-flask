@@ -2,16 +2,17 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from varappx.handle_init import *
-from varappx import login_manager
+
 # basedir
 ## Login stuff.
 ## Care, this stupid Django automatically adds '_id' to foreign key fields,
 ## e.g. a foreign key named 'variants_db' here corresponds to 'variants_db_id' in the db.
 
-#
-@login_manager.user_loader
-def load_user(user_id):
-    return Users.query.get(int(user_id))
+
+# @login_manager.user_loader
+# def load_user(user_id):
+#     return Users.query.get(int(user_id))
+
 
 class UsersModel(object):
     """Abstract, to add these fields to all db"""

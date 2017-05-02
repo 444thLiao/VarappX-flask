@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash
 from varappx.common.utils import random_string
 from varappx.common.email import send_email
 from varappx.handle_config import settings
-
+from varappx import login_manager
 
 def set_jwt(info, secret, duration=3600):
     """Create a jwt containing user information.
@@ -274,3 +274,11 @@ def attribute_db(username, code, dbname, add):
     db.session.add(dbaccess)
     db.session.commit()
     return user
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    auth_header = request.environ.get('HTTP_AUTHORIZATION')
+    payload, msg = verify_jwt(auth_header, settings.SECRET_KEY)
+    if payload:
+        user = find_user(payload['username'], payload['code'], require_active=False)
+        return user
