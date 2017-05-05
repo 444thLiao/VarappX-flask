@@ -51,16 +51,16 @@ def normpath(path):
 
 def check_redis_connection(app):
     """Return whether I can access the Redis cache."""
-    from flask.ext.redis import FlaskRedis
+    from flask_redis import FlaskRedis
     try:
         redis_cache = FlaskRedis(app)
     except:
-        logging.error("django_redis.cache.RedisCache backend not found")
+        print("django_redis.cache.RedisCache backend not found")
         return False
     try:
-        return 'somekey' in redis_cache or True
+        return redis_cache.set('hello','world') or True
     except Exception:
-        logging.error("Could not connect to Redis")
+        print("Could not connect to Redis")
         return False
 
 

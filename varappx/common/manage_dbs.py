@@ -44,9 +44,11 @@ def activate_deactivate_at_gemini_path():
             iter_vdbs[_vdb.filename] = [_vdb]
         else:
             iter_vdbs[_vdb.filename].append(_vdb)
+    #create a collection of all version of db, which is using filename as key, vdb instance ad value
 
     for filename, vdbs_group in iter_vdbs.items():
         vdb = vdbs_group[-1]
+        #using the latest one instead of the old version one.
         if is_test_vdb(vdb):
             continue
         expected_path = os.path.join(SQLITE_DB_PATH, vdb.filename)
@@ -63,10 +65,11 @@ def copy_VariantsDb_to_settings():
     """Store all active VariantDbs into settings.DATABASES (at startup).
        (After that, VariantsDb and settings are in sync,
        and all connections point to valid sqlite databases)."""
-    vdbs = VariantsDb.objects.filter(is_active=1)
+    from varappx.handle_config import settings
+    vdbs = VariantsDb.query.filter_by(is_active=1).all()
     added = []
     for vdb in vdbs:
-        if settings.DATABASES.get(vdb.name):
+        if settings.SQLALCHEMY_BINDS.get(vdb.name):
             continue
         elif not is_valid_vdb(vdb):
             continue
@@ -98,13 +101,12 @@ def add_new_db(path, dbname=None, sha=None, parent_db_id=None):
     logger.info("(+) Adding '{}' as '{}' to settings and users_db".format(path, dbname))
     add_db_to_settings(dbname, filename)
     try:
-
-        vdb = VariantsDb()
-        vdb.name = dbname
-        newdb,created = VariantsDb.get_or_create(
+        vdb = VariantsDb(
             name=dbname, filename=filename, location=dirname, is_active=1,
             hash=sha, size=size, visible_name=dbname, parent_db_id=parent_db_id)
-        return newdb
+        db.session.add(vdb)
+        db.session.commit()
+        return vdb
     except:
         pass
     # except IntegrityError:
@@ -122,11 +124,13 @@ def update_db(parent:VariantsDb, newdb:VariantsDb):
     # Deactivate the old one
     remove_db(parent)
     # All accesses to the old one to target the new one instead
-    old_accesses = DbAccess.objects.filter(variants_db=parent)
+    old_accesses = DbAccess.query.filter(variants_db=parent).all()
     for acc in old_accesses:
         acc.is_active = 0
-        acc.save()
-        DbAccess.objects.get_or_create(variants_db=newdb, user=acc.user, is_active=1)
+        new_access = DbAccess(variantsdb=newdb, user=acc.user)
+        db.session.add(acc)
+        db.session.add(new_access)
+        db.session.commit()
 
 def update_if_db_changed(vdb, check_time=True, warn=True):
     """Return whether the db changed.
@@ -139,12 +143,13 @@ def update_if_db_changed(vdb, check_time=True, warn=True):
     if new_time or not check_time:
         new_hash = is_hash_changed(vdb, warn=warn)
         if new_hash:
-            newdb = add_new_db(vdb_full_path(vdb), vdb.name, new_hash, parent_db_id=vdb.pk)
+            newdb = add_new_db(vdb_full_path(vdb), vdb.name, new_hash, parent_db_id=vdb.id)
             update_db(vdb, newdb)   # add a new entry with same filename
             return True
         else:
             logger.info("(v) Same hash for '{}', refresh the updated_time.".format(vdb.name))
-            vdb.save()
+            db.session.add(vdb)
+            db.session.commit()
     return False
 
 def diff_disk_VariantsDb(path=settings.SQLITE_DB_PATH, check_time=True):
@@ -154,26 +159,27 @@ def diff_disk_VariantsDb(path=settings.SQLITE_DB_PATH, check_time=True):
         fpath = join(path, filename)
         fsha = sha1sum(fpath)
         # Check if a deactivated db has the same hash. If so, reactivate it
-        deac = VariantsDb.objects.filter(filename=filename, is_active=0, hash=fsha)
-        if deac.count() > 0:
+        deac = VariantsDb.query.filter_by(filename=filename, is_active=0, hash=fsha).all()
+        if len(deac) > 0:
             logger.info("(+) Reactivating '{}'".format(fsha))
             newdb = deac[0]
             newdb.is_active = 1
-            newdb.save()
+            db.session.add(newdb)
+            db.session.commit()
             add_db_to_settings(newdb.name, newdb.filename)
         # Otherwise, create a new one
         else:
             add_new_db(fpath, sha=fsha)
 
-    # with transaction.atomic():  # otherwise "select_for_update cannot be used outside of a transaction"
-    #     vdbs = VariantsDb.objects.select_for_update().filter(is_active=1)
-    #     vdb_names = [v.filename for v in vdbs]
-    #     ondisk = scan_dir_for_dbs(path)
-    #     # Add dbs that are newly found on disk
-    #     diff = set(ondisk) - set(vdb_names)
-    #     for fname in diff:
-    #         add_new_found_db(fname)
-    #     # Already existing filenames could be updates. Check SHA hash to update
-    #     for vdb in vdbs:
-    #         update_if_db_changed(vdb, check_time=check_time, warn=True)
+    # otherwise "select_for_update cannot be used outside of a transaction"
+    vdbs = VariantsDb.query.filter_by(is_active=1).all()
+    vdb_names = [v.filename for v in vdbs]
+    ondisk = scan_dir_for_dbs(path)
+    # Add dbs that are newly found on disk
+    diff = set(ondisk) - set(vdb_names)
+    for fname in diff:
+        add_new_found_db(fname)
+    # Already existing filenames could be updates. Check SHA hash to update
+    for vdb in vdbs:
+        update_if_db_changed(vdb, check_time=check_time, warn=True)
 

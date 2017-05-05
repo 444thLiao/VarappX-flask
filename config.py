@@ -20,7 +20,7 @@ class Config:
     }
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
-    SQLITE_DB_PATH = './resources/db'
+    SQLITE_DB_PATH = base_dir+'/varappx/main/resources/db'
     DB_TEST = 'demo_mini.db'
 
     CACHE_TYPE = 'redis'

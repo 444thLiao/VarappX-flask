@@ -107,7 +107,7 @@ def verify_jwt(auth_header, secret):
     """Extract the jwt token from the header, verify its signature,
        its expiration time, and return the payload."""
     if not auth_header or auth_header == 'null':
-        logging.warning("No Authorization header")
+        #logging.warning("No Authorization header")
         return [None, "Unauthorized access: missing authentication"]
     method, token = auth_header.split()  # separate 'JWT' from the jwt itself
     token = bytes(token, 'utf-8')
@@ -202,7 +202,7 @@ def change_password(username, email, activation_code, password, email_to_file=No
     if user.activation_code != activation_code:
         logging.warning("Invalid activation code: {}".format(activation_code))
         return [None, "Password has already been reset"]
-    user.password = generate_password_hash(password)
+    user.password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=8)
     user.activation_code = None
     db.session.add(user)
     db.session.commit()
@@ -253,7 +253,8 @@ def user_activation(username, code, email, activate, email_to_file=None):
                    text=text, html=html, tofile=email_to_file)
     else:
         user.is_active = 0
-        user.save()
+        db.session.add(user)
+        db.session.commit()
     return [user, '']
 
 
@@ -266,10 +267,10 @@ def attribute_db(username, code, dbname, add):
     vdb = users.VariantsDb.query.filter_by(name=dbname).first()
     if add == 'true':
         vdb.is_active = 1
-        dbaccess = users.DbAccess(users=user, variantsdb=vdb)
+        dbaccess = users.DbAccess(users=user, variantsdb=vdb,is_active=1)
     else:
-        dbaccess = users.DbAccess.query.filter_by(user=user, variantsdb=vdb)
-        dbaccess.variantsdb.is_active = 0
+        dbaccess = users.DbAccess.query.filter_by(user_id=user.id, variants_db_id=vdb.id).first()
+        dbaccess.is_active = 0
 
     db.session.add(dbaccess)
     db.session.commit()

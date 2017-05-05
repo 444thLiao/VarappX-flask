@@ -1,369 +1,369 @@
 # coding: utf-8
-from sqlalchemy import Boolean, Column, Float, Index, Integer, LargeBinary, String, Table, Text, text
-from sqlalchemy.ext.declarative import declarative_base
 
+from varappx.handle_init import *
 
-Base = declarative_base()
-metadata = Base.metadata
-
-
-class GeneDetailed(Base):
+class GeneDetailed(db.Model):
     __tablename__ = 'gene_detailed'
     __table_args__ = (
-        Index('gendet_chrom_gene_idx', 'chrom', 'gene'),
+        db.Index('gendet_chrom_gene_idx', 'chrom', 'gene'),
     )
 
-    uid = Column(Integer, primary_key=True)
-    chrom = Column(String(60))
-    gene = Column(String(60))
-    is_hgnc = Column(Boolean)
-    ensembl_gene_id = Column(Text)
-    transcript = Column(String(60), index=True)
-    biotype = Column(Text)
-    transcript_status = Column(Text)
-    ccds_id = Column(String(60), index=True)
-    hgnc_id = Column(Text)
-    entrez_id = Column(Text)
-    cds_length = Column(Text)
-    protein_length = Column(Text)
-    transcript_start = Column(Text)
-    transcript_end = Column(Text)
-    strand = Column(Text)
-    synonym = Column(Text)
-    rvis_pct = Column(Float, index=True)
-    mam_phenotype_id = Column(Text)
+    uid = db.Column(db.Integer, primary_key=True)
+    chrom = db.Column(db.String(60))
+    gene = db.Column(db.String(60))
+    is_hgnc = db.Column(db.Boolean)
+    ensembl_gene_id = db.Column(db.Text)
+    transcript = db.Column(db.String(60), index=True)
+    biotype = db.Column(db.Text)
+    transcript_status = db.Column(db.Text)
+    ccds_id = db.Column(db.String(60), index=True)
+    hgnc_id = db.Column(db.Text)
+    entrez_id = db.Column(db.Text)
+    cds_length = db.Column(db.Text)
+    protein_length = db.Column(db.Text)
+    transcript_start = db.Column(db.Text)
+    transcript_end = db.Column(db.Text)
+    strand = db.Column(db.Text)
+    synonym = db.Column(db.Text)
+    rvis_pct = db.Column(db.Float, index=True)
+    mam_phenotype_id = db.Column(db.Text)
 
 
-class GeneSummary(Base):
+class GeneSummary(db.Model):
     __tablename__ = 'gene_summary'
     __table_args__ = (
-        Index('gensum_chrom_gene_idx', 'chrom', 'gene'),
+        db.Index('gensum_chrom_gene_idx', 'chrom', 'gene'),
     )
 
-    uid = Column(Integer, primary_key=True)
-    chrom = Column(String(60))
-    gene = Column(String(60))
-    is_hgnc = Column(Boolean)
-    ensembl_gene_id = Column(Text)
-    hgnc_id = Column(Text)
-    transcript_min_start = Column(Integer)
-    transcript_max_end = Column(Integer)
-    strand = Column(Text)
-    synonym = Column(Text)
-    rvis_pct = Column(Float, index=True)
-    mam_phenotype_id = Column(Text)
-    in_cosmic_census = Column(Boolean)
+    uid = db.Column(db.Integer, primary_key=True)
+    chrom = db.Column(db.String(60))
+    gene = db.Column(db.String(60))
+    is_hgnc = db.Column(db.Boolean)
+    ensembl_gene_id = db.Column(db.Text)
+    hgnc_id = db.Column(db.Text)
+    transcript_min_start = db.Column(db.Integer)
+    transcript_max_end = db.Column(db.Integer)
+    strand = db.Column(db.Text)
+    synonym = db.Column(db.Text)
+    rvis_pct = db.Column(db.Float, index=True)
+    mam_phenotype_id = db.Column(db.Text)
+    in_cosmic_census = db.Column(db.Boolean)
+
+class Resources(db.Model):
+    __tablename__ = 'resources'
+    rid = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    resource = db.Column(db.Text)
 
 
-t_resources = Table(
-    'resources', metadata,
-    Column('name', Text),
-    Column('resource', Text)
-)
-
-
-class SampleGenotypeCount(Base):
+class SampleGenotypeCount(db.Model):
     __tablename__ = 'sample_genotype_counts'
 
-    sample_id = Column(Integer, primary_key=True)
-    num_hom_ref = Column(Integer)
-    num_het = Column(Integer)
-    num_hom_alt = Column(Integer)
-    num_unknown = Column(Integer)
+    sample_id = db.Column(db.Integer, primary_key=True)
+    num_hom_ref = db.Column(db.Integer)
+    num_het = db.Column(db.Integer)
+    num_hom_alt = db.Column(db.Integer)
+    num_unknown = db.Column(db.Integer)
 
 
-class SampleGenotype(Base):
+class SampleGenotype(db.Model):
     __tablename__ = 'sample_genotypes'
 
-    sample_id = Column(Integer, primary_key=True)
-    gt_types = Column(LargeBinary)
+    sample_id = db.Column(db.Integer, primary_key=True)
+    gt_types = db.Column(db.LargeBinary)
+
+class Samples(db.Model):
+    __tablename__ = 'samples'
+    __table_args__ = (
+        db.Index('sample_family_id', 'sample_id', 'family_id'),
+    )
+    sample_id = db.Column(db.Integer,primary_key=True)
+    family_id = db.Column(db.Text,primary_key=True)
+    name = db.Column(db.Text, unique=True)
+    paternal_id = db.Column(db.Text)
+    maternal_id = db.Column(db.Text)
+    sex = db.Column(db.Text)
+    phenotype = db.Column(db.Text)
+
+# class
+#
+# t_variant_impacts = Table(
+#     'variant_impacts', metadata,
+#     db.Column('variant_id', db.Integer),
+#     db.Column('anno_id', db.Integer),
+#     db.Column('gene', db.String(60), index=True),
+#     db.Column('transcript', db.String(60), index=True),
+#     db.Column('is_exonic', db.Boolean, index=True),
+#     db.Column('is_coding', db.Boolean, index=True),
+#     db.Column('is_lof', db.Boolean, index=True),
+#     db.Column('exon', db.Text),
+#     db.Column('codon_change', db.Text),
+#     db.Column('aa_change', db.Text),
+#     db.Column('aa_length', db.Text),
+#     db.Column('biotype', db.Text),
+#     db.Column('impact', db.String(60), index=True),
+#     db.Column('impact_so', db.Text),
+#     db.Column('impact_severity', db.String(20)),
+#     db.Column('polyphen_pred', db.Text),
+#     db.Column('polyphen_score', db.Float),
+#     db.Column('sift_pred', db.Text),
+#     db.Column('sift_score', db.Float),
+#     db.Column('vep_allele', db.Text),
+#     db.Column('vep_impact', db.Text),
+#     db.Column('vep_feature_type', db.Text),
+#     db.Column('vep_intron', db.Text),
+#     db.Column('vep_hgvsc', db.Text),
+#     db.Column('vep_hgvsp', db.Text),
+#     db.Column('vep_cdna_position', db.Text),
+#     db.Column('vep_cds_position', db.Text),
+#     db.Column('vep_existing_variation', db.Text),
+#     db.Column('vep_distance', db.Text),
+#     db.Column('vep_strand', db.Text),
+#     db.Column('vep_flags', db.Text),
+#     db.Column('vep_variant_class', db.Text),
+#     db.Column('vep_symbol_source', db.Text),
+#     db.Column('vep_hgnc_id', db.Text),
+#     db.Column('vep_canonical', db.Text),
+#     db.Column('vep_tsl', db.Text),
+#     db.Column('vep_ccds', db.Text),
+#     db.Column('vep_ensp', db.Text),
+#     db.Column('vep_swissprot', db.Text),
+#     db.Column('vep_trembl', db.Text),
+#     db.Column('vep_uniparc', db.Text),
+#     db.Column('vep_refseq_match', db.Text),
+#     db.Column('vep_gene_pheno', db.Text),
+#     db.Column('vep_domains', db.Text),
+#     db.Column('vep_hgvs_offset', db.Text),
+#     db.Column('vep_motif_name', db.Text),
+#     db.Column('vep_motif_pos', db.Text),
+#     db.Column('vep_high_inf_pos', db.Text),
+#     db.Column('vep_motif_score_change', db.Text)
+# )
 
 
-t_samples = Table(
-    'samples', metadata,
-    Column('sample_id', Integer),
-    Column('family_id', Text),
-    Column('name', Text, unique=True),
-    Column('paternal_id', Text),
-    Column('maternal_id', Text),
-    Column('sex', Text),
-    Column('phenotype', Text)
-)
-
-
-t_variant_impacts = Table(
-    'variant_impacts', metadata,
-    Column('variant_id', Integer),
-    Column('anno_id', Integer),
-    Column('gene', String(60), index=True),
-    Column('transcript', String(60), index=True),
-    Column('is_exonic', Boolean, index=True),
-    Column('is_coding', Boolean, index=True),
-    Column('is_lof', Boolean, index=True),
-    Column('exon', Text),
-    Column('codon_change', Text),
-    Column('aa_change', Text),
-    Column('aa_length', Text),
-    Column('biotype', Text),
-    Column('impact', String(60), index=True),
-    Column('impact_so', Text),
-    Column('impact_severity', String(20)),
-    Column('polyphen_pred', Text),
-    Column('polyphen_score', Float),
-    Column('sift_pred', Text),
-    Column('sift_score', Float),
-    Column('vep_allele', Text),
-    Column('vep_impact', Text),
-    Column('vep_feature_type', Text),
-    Column('vep_intron', Text),
-    Column('vep_hgvsc', Text),
-    Column('vep_hgvsp', Text),
-    Column('vep_cdna_position', Text),
-    Column('vep_cds_position', Text),
-    Column('vep_existing_variation', Text),
-    Column('vep_distance', Text),
-    Column('vep_strand', Text),
-    Column('vep_flags', Text),
-    Column('vep_variant_class', Text),
-    Column('vep_symbol_source', Text),
-    Column('vep_hgnc_id', Text),
-    Column('vep_canonical', Text),
-    Column('vep_tsl', Text),
-    Column('vep_ccds', Text),
-    Column('vep_ensp', Text),
-    Column('vep_swissprot', Text),
-    Column('vep_trembl', Text),
-    Column('vep_uniparc', Text),
-    Column('vep_refseq_match', Text),
-    Column('vep_gene_pheno', Text),
-    Column('vep_domains', Text),
-    Column('vep_hgvs_offset', Text),
-    Column('vep_motif_name', Text),
-    Column('vep_motif_pos', Text),
-    Column('vep_high_inf_pos', Text),
-    Column('vep_motif_score_change', Text)
-)
-
-
-class Variant(Base):
+class Variants(db.Model):
     __tablename__ = 'variants'
     __table_args__ = (
-        Index('var_gt_counts_idx', 'num_hom_ref', 'num_het', 'num_hom_alt', 'num_unknown'),
-        Index('var_chr_start_idx', 'chrom', 'start'),
-        Index('chrom_varid_idx', 'chrom', 'variant_id')
+        db.Index('var_gt_counts_idx', 'num_hom_ref', 'num_het', 'num_hom_alt', 'num_unknown'),
+        db.Index('var_chr_start_idx', 'chrom', 'start'),
+        db.Index('chrom_varid_idx', 'chrom', 'variant_id')
     )
 
-    chrom = Column(String(20))
-    start = Column(Integer)
-    end = Column(Integer)
-    vcf_id = Column(Text)
-    variant_id = Column(Integer, primary_key=True)
-    anno_id = Column(Integer)
-    ref = Column(Text)
-    alt = Column(Text)
-    qual = Column(Float, index=True)
-    filter = Column(Text)
-    type = Column(String(20), index=True)
-    sub_type = Column(Text)
-    gts = Column(LargeBinary)
-    gt_types = Column(LargeBinary)
-    gt_phases = Column(LargeBinary)
-    gt_depths = Column(LargeBinary)
-    gt_ref_depths = Column(LargeBinary)
-    gt_alt_depths = Column(LargeBinary)
-    gt_quals = Column(LargeBinary)
-    gt_copy_numbers = Column(LargeBinary)
-    gt_phred_ll_homref = Column(LargeBinary)
-    gt_phred_ll_het = Column(LargeBinary)
-    gt_phred_ll_homalt = Column(LargeBinary)
-    call_rate = Column(Float, index=True)
-    max_aaf_all = Column(Float, index=True)
-    in_dbsnp = Column(Boolean, index=True)
-    rs_ids = Column(Text)
-    sv_cipos_start_left = Column(Integer)
-    sv_cipos_end_left = Column(Integer)
-    sv_cipos_start_right = Column(Integer)
-    sv_cipos_end_right = Column(Integer)
-    sv_length = Column(Integer)
-    sv_is_precise = Column(Boolean)
-    sv_tool = Column(Text)
-    sv_evidence_type = Column(Text)
-    sv_event_id = Column(Text)
-    sv_mate_id = Column(Text)
-    sv_strand = Column(Text)
-    in_omim = Column(Boolean, index=True)
-    clinvar_sig = Column(Text)
-    clinvar_disease_name = Column(Text)
-    clinvar_dbsource = Column(Text)
-    clinvar_dbsource_id = Column(Text)
-    clinvar_origin = Column(Text)
-    clinvar_dsdb = Column(Text)
-    clinvar_dsdbid = Column(Text)
-    clinvar_disease_acc = Column(Text)
-    clinvar_in_locus_spec_db = Column(Boolean)
-    clinvar_on_diag_assay = Column(Boolean)
-    clinvar_causal_allele = Column(Text)
-    clinvar_gene_phenotype = Column(Text)
-    geno2mp_hpo_ct = Column(Integer)
-    pfam_domain = Column(Text)
-    cyto_band = Column(Text)
-    rmsk = Column(Text)
-    in_cpg_island = Column(Boolean)
-    in_segdup = Column(Boolean)
-    is_conserved = Column(Boolean)
-    gerp_bp_score = Column(Float)
-    gerp_element_pval = Column(Float)
-    num_hom_ref = Column(Integer, index=True)
-    num_het = Column(Integer, index=True)
-    num_hom_alt = Column(Integer, index=True)
-    num_unknown = Column(Integer, index=True)
-    aaf = Column(Float, index=True)
-    hwe = Column(Float)
-    inbreeding_coeff = Column(Float)
-    pi = Column(Float)
-    recomb_rate = Column(Float)
-    gene = Column(String(60), index=True)
-    transcript = Column(String(60), index=True)
-    is_exonic = Column(Boolean, index=True)
-    is_coding = Column(Boolean, index=True)
-    is_splicing = Column(Boolean)
-    is_lof = Column(Boolean, index=True)
-    exon = Column(Text)
-    codon_change = Column(Text)
-    aa_change = Column(Text)
-    aa_length = Column(Text)
-    biotype = Column(Text)
-    impact = Column(String(60), index=True)
-    impact_so = Column(Text)
-    impact_severity = Column(String(20), index=True)
-    polyphen_pred = Column(Text)
-    polyphen_score = Column(Float)
-    sift_pred = Column(Text)
-    sift_score = Column(Float)
-    anc_allele = Column(Text)
-    rms_bq = Column(Float)
-    cigar = Column(Text)
-    depth = Column(Integer, index=True)
-    strand_bias = Column(Float)
-    rms_map_qual = Column(Float)
-    in_hom_run = Column(Integer)
-    num_mapq_zero = Column(Integer)
-    num_alleles = Column(Integer)
-    num_reads_w_dels = Column(Float)
-    haplotype_score = Column(Float)
-    qual_depth = Column(Float)
-    allele_count = Column(Integer)
-    allele_bal = Column(Float)
-    in_hm2 = Column(Boolean)
-    in_hm3 = Column(Boolean)
-    is_somatic = Column(Boolean, index=True)
-    somatic_score = Column(Float)
-    in_esp = Column(Boolean)
-    aaf_esp_ea = Column(Float)
-    aaf_esp_aa = Column(Float)
-    aaf_esp_all = Column(Float, index=True)
-    exome_chip = Column(Boolean)
-    in_1kg = Column(Boolean)
-    aaf_1kg_amr = Column(Float)
-    aaf_1kg_eas = Column(Float)
-    aaf_1kg_sas = Column(Float)
-    aaf_1kg_afr = Column(Float)
-    aaf_1kg_eur = Column(Float)
-    aaf_1kg_all = Column(Float, index=True)
-    grc = Column(Text)
-    gms_illumina = Column(Float)
-    gms_solid = Column(Float)
-    gms_iontorrent = Column(Float)
-    in_cse = Column(Boolean)
-    encode_tfbs = Column(Text)
-    encode_dnaseI_cell_count = Column(Integer)
-    encode_dnaseI_cell_list = Column(Text)
-    encode_consensus_gm12878 = Column(Text)
-    encode_consensus_h1hesc = Column(Text)
-    encode_consensus_helas3 = Column(Text)
-    encode_consensus_hepg2 = Column(Text)
-    encode_consensus_huvec = Column(Text)
-    encode_consensus_k562 = Column(Text)
-    vista_enhancers = Column(Text)
-    cosmic_ids = Column(Text)
-    info = Column(LargeBinary)
-    cadd_raw = Column(Float, index=True)
-    cadd_scaled = Column(Float, index=True)
-    fitcons = Column(Float, index=True)
-    in_exac = Column(Boolean)
-    aaf_exac_all = Column(Float)
-    aaf_adj_exac_all = Column(Float)
-    aaf_adj_exac_afr = Column(Float)
-    aaf_adj_exac_amr = Column(Float)
-    aaf_adj_exac_eas = Column(Float)
-    aaf_adj_exac_fin = Column(Float)
-    aaf_adj_exac_nfe = Column(Float)
-    aaf_adj_exac_oth = Column(Float)
-    aaf_adj_exac_sas = Column(Float)
-    exac_num_het = Column(Integer)
-    exac_num_hom_alt = Column(Integer)
-    exac_num_chroms = Column(Integer)
-    aaf_gnomad_all = Column(Float)
-    aaf_gnomad_afr = Column(Float)
-    aaf_gnomad_amr = Column(Float)
-    aaf_gnomad_asj = Column(Float)
-    aaf_gnomad_eas = Column(Float)
-    aaf_gnomad_fin = Column(Float)
-    aaf_gnomad_nfe = Column(Float)
-    aaf_gnomad_oth = Column(Float)
-    aaf_gnomad_sas = Column(Float)
-    gnomad_num_het = Column(Integer)
-    gnomad_num_hom_alt = Column(Integer)
-    gnomad_num_chroms = Column(Integer)
-    vep_allele = Column(Text)
-    vep_impact = Column(Text)
-    vep_feature_type = Column(Text)
-    vep_intron = Column(Text)
-    vep_hgvsc = Column(Text)
-    vep_hgvsp = Column(Text)
-    vep_cdna_position = Column(Text)
-    vep_cds_position = Column(Text)
-    vep_existing_variation = Column(Text)
-    vep_distance = Column(Text)
-    vep_strand = Column(Text)
-    vep_flags = Column(Text)
-    vep_variant_class = Column(Text)
-    vep_symbol_source = Column(Text)
-    vep_hgnc_id = Column(Text)
-    vep_canonical = Column(Text)
-    vep_tsl = Column(Text)
-    vep_ccds = Column(Text)
-    vep_ensp = Column(Text)
-    vep_swissprot = Column(Text)
-    vep_trembl = Column(Text)
-    vep_uniparc = Column(Text)
-    vep_refseq_match = Column(Text)
-    vep_gene_pheno = Column(Text)
-    vep_domains = Column(Text)
-    vep_hgvs_offset = Column(Text)
-    vep_motif_name = Column(Text)
-    vep_motif_pos = Column(Text)
-    vep_high_inf_pos = Column(Text)
-    vep_motif_score_change = Column(Text)
-    PoS = Column(Integer, index=True, server_default=text("NULL"))
-    SAD = Column(Text, index=True, server_default=text("NULL"))
-    SAF = Column(Text, index=True, server_default=text("NULL"))
-    AF = Column(Text, index=True, server_default=text("NULL"))
-    BaseQRankSum = Column(Float, index=True, server_default=text("NULL"))
-    FS = Column(Float, index=True, server_default=text("NULL"))
-    MQRankSum = Column(Float, index=True, server_default=text("NULL"))
-    ReadPosRankSum = Column(Float, index=True, server_default=text("NULL"))
-    SOR = Column(Float, index=True, server_default=text("NULL"))
-    AD = Column(Text, index=True, server_default=text("NULL"))
+    chrom = db.Column(db.String(20))
+    start = db.Column(db.Integer)
+    end = db.Column(db.Integer)
+    vcf_id = db.Column(db.Text)
+    variant_id = db.Column(db.Integer, primary_key=True)
+    anno_id = db.Column(db.Integer)
+    ref = db.Column(db.Text)
+    alt = db.Column(db.Text)
+    qual = db.Column(db.Float, index=True)
+    filter = db.Column(db.Text)
+    type = db.Column(db.String(20), index=True)
+    # sub_type = db.Column(db.Text)
+    gts = db.Column(db.LargeBinary)
+    gt_types = db.Column(db.LargeBinary)
+    # gt_phases = db.Column(db.LargeBinary)
+    gt_depths = db.Column(db.LargeBinary)
+    # gt_ref_depths = db.Column(db.LargeBinary)
+    # gt_alt_depths = db.Column(db.LargeBinary)
+    # gt_quals = db.Column(db.LargeBinary)
+    # gt_copy_numbers = db.Column(db.LargeBinary)
+    # gt_phred_ll_homref = db.Column(db.LargeBinary)
+    # gt_phred_ll_het = db.Column(db.LargeBinary)
+    # gt_phred_ll_homalt = db.Column(db.LargeBinary)
+    call_rate = db.Column(db.Float, index=True)
 
+    in_dbsnp = db.Column(db.Boolean, index=True)
+    rs_ids = db.Column(db.Text)
+    # sv_cipos_start_left = db.Column(db.Integer)
+    # sv_cipos_end_left = db.Column(db.Integer)
+    # sv_cipos_start_right = db.Column(db.Integer)
+    # sv_cipos_end_right = db.Column(db.Integer)
+    # sv_length = db.Column(db.Integer)
+    # sv_is_precise = db.Column(db.Boolean)
+    # sv_tool = db.Column(db.Text)
+    # sv_evidence_type = db.Column(db.Text)
+    # sv_event_id = db.Column(db.Text)
+    # sv_mate_id = db.Column(db.Text)
+    # sv_strand = db.Column(db.Text)
+    in_omim = db.Column(db.Boolean, index=True)
+    clinvar_sig = db.Column(db.Text)
+    clinvar_disease_name = db.Column(db.Text)
+    clinvar_dbsource = db.Column(db.Text)
+    clinvar_dbsource_id = db.Column(db.Text)
+    clinvar_origin = db.Column(db.Text)
+    clinvar_dsdb = db.Column(db.Text)
+    clinvar_dsdbid = db.Column(db.Text)
+    clinvar_disease_acc = db.Column(db.Text)
+    clinvar_in_locus_spec_db = db.Column(db.Boolean)
+    clinvar_on_diag_assay = db.Column(db.Boolean)
+    clinvar_causal_allele = db.Column(db.Text)
+    clinvar_gene_phenotype = db.Column(db.Text)
+    geno2mp_hpo_ct = db.Column(db.Integer)
+    pfam_domain = db.Column(db.Text)
+    cyto_band = db.Column(db.Text)
+    rmsk = db.Column(db.Text)
+    in_cpg_island = db.Column(db.Boolean)
+    in_segdup = db.Column(db.Boolean)
+    is_conserved = db.Column(db.Boolean)
+    gerp_bp_score = db.Column(db.Float)
+    gerp_element_pval = db.Column(db.Float)
+    num_hom_ref = db.Column(db.Integer, index=True)
+    num_het = db.Column(db.Integer, index=True)
+    num_hom_alt = db.Column(db.Integer, index=True)
+    num_unknown = db.Column(db.Integer, index=True)
+    aaf = db.Column(db.Float, index=True)
+    hwe = db.Column(db.Float)
+    inbreeding_coeff = db.Column(db.Float)
+    pi = db.Column(db.Float)
+    recomb_rate = db.Column(db.Float)
+    gene = db.Column(db.String(60), index=True)
+    transcript = db.Column(db.String(60), index=True)
+    is_exonic = db.Column(db.Boolean, index=True)
+    is_coding = db.Column(db.Boolean, index=True)
+    is_splicing = db.Column(db.Boolean)
+    is_lof = db.Column(db.Boolean, index=True)
+    exon = db.Column(db.Text)
+    codon_change = db.Column(db.Text)
+    aa_change = db.Column(db.Text)
+    aa_length = db.Column(db.Text)
+    biotype = db.Column(db.Text)
+    impact = db.Column(db.String(60), index=True)
+    impact_so = db.Column(db.Text)
+    impact_severity = db.Column(db.String(20), index=True)
+    polyphen_pred = db.Column(db.Text)
+    polyphen_score = db.Column(db.Float)
+    sift_pred = db.Column(db.Text)
+    sift_score = db.Column(db.Float)
+    anc_allele = db.Column(db.Text)
+    rms_bq = db.Column(db.Float)
+    cigar = db.Column(db.Text)
+    depth = db.Column(db.Integer, index=True)
+    strand_bias = db.Column(db.Float)
+    rms_map_qual = db.Column(db.Float)
+    in_hom_run = db.Column(db.Integer)
+    num_mapq_zero = db.Column(db.Integer)
+    num_alleles = db.Column(db.Integer)
+    num_reads_w_dels = db.Column(db.Float)
+    haplotype_score = db.Column(db.Float)
+    qual_depth = db.Column(db.Float)
+    allele_count = db.Column(db.Integer)
+    allele_bal = db.Column(db.Float)
+    in_hm2 = db.Column(db.Boolean)
+    in_hm3 = db.Column(db.Boolean)
+    is_somatic = db.Column(db.Boolean, index=True)
+    somatic_score = db.Column(db.Float)
+    in_esp = db.Column(db.Boolean)
+    # aaf_esp_ea = db.Column(db.Float)
+    # aaf_esp_aa = db.Column(db.Float)
+    #
+    exome_chip = db.Column(db.Boolean)
+    in_1kg = db.Column(db.Boolean)
+    # aaf_1kg_amr = db.Column(db.Float)
+    # aaf_1kg_eas = db.Column(db.Float)
+    # aaf_1kg_sas = db.Column(db.Float)
+    # aaf_1kg_afr = db.Column(db.Float)
+    # aaf_1kg_eur = db.Column(db.Float)
 
-t_vcf_header = Table(
-    'vcf_header', metadata,
-    Column('vcf_header', Text)
-)
+    aaf_exac_all = db.Column(db.Float)
+    aaf_esp_all = db.Column(db.Float, index=True)
+    aaf_1kg_all = db.Column(db.Float, index=True)
+    max_aaf_all = db.Column(db.Float, index=True)
 
+    grc = db.Column(db.Text)
+    gms_illumina = db.Column(db.Float)
+    # gms_solid = db.Column(db.Float)
+    # gms_iontorrent = db.Column(db.Float)
+    # in_cse = db.Column(db.Boolean)
+    # encode_tfbs = db.Column(db.Text)
+    # encode_dnaseI_cell_count = db.Column(db.Integer)
+    # encode_dnaseI_cell_list = db.Column(db.Text)
+    # encode_consensus_gm12878 = db.Column(db.Text)
+    # encode_consensus_h1hesc = db.Column(db.Text)
+    # encode_consensus_helas3 = db.Column(db.Text)
+    # encode_consensus_hepg2 = db.Column(db.Text)
+    # encode_consensus_huvec = db.Column(db.Text)
+    # encode_consensus_k562 = db.Column(db.Text)
+    vista_enhancers = db.Column(db.Text)
+    cosmic_ids = db.Column(db.Text)
+    info = db.Column(db.LargeBinary)
+    cadd_raw = db.Column(db.Float, index=True)
+    cadd_scaled = db.Column(db.Float, index=True)
+    fitcons = db.Column(db.Float, index=True)
+    in_exac = db.Column(db.Boolean)
 
-t_version = Table(
-    'version', metadata,
-    Column('version', Text)
-)
+    # aaf_adj_exac_all = db.Column(db.Float)
+    # aaf_adj_exac_afr = db.Column(db.Float)
+    # aaf_adj_exac_amr = db.Column(db.Float)
+    # aaf_adj_exac_eas = db.Column(db.Float)
+    # aaf_adj_exac_fin = db.Column(db.Float)
+    # aaf_adj_exac_nfe = db.Column(db.Float)
+    # aaf_adj_exac_oth = db.Column(db.Float)
+    # aaf_adj_exac_sas = db.Column(db.Float)
+    # exac_num_het = db.Column(db.Integer)
+    # exac_num_hom_alt = db.Column(db.Integer)
+    # exac_num_chroms = db.Column(db.Integer)
+    # aaf_gnomad_all = db.Column(db.Float)
+    # aaf_gnomad_afr = db.Column(db.Float)
+    # aaf_gnomad_amr = db.Column(db.Float)
+    # aaf_gnomad_asj = db.Column(db.Float)
+    # aaf_gnomad_eas = db.Column(db.Float)
+    # aaf_gnomad_fin = db.Column(db.Float)
+    # aaf_gnomad_nfe = db.Column(db.Float)
+    # aaf_gnomad_oth = db.Column(db.Float)
+    # aaf_gnomad_sas = db.Column(db.Float)
+    gnomad_num_het = db.Column(db.Integer)
+    gnomad_num_hom_alt = db.Column(db.Integer)
+    gnomad_num_chroms = db.Column(db.Integer)
+    # vep_allele = db.Column(db.Text)
+    # vep_impact = db.Column(db.Text)
+    # vep_feature_type = db.Column(db.Text)
+    # vep_intron = db.Column(db.Text)
+    vep_hgvsc = db.Column(db.Text)
+    vep_hgvsp = db.Column(db.Text)
+    # vep_cdna_position = db.Column(db.Text)
+    # vep_cds_position = db.Column(db.Text)
+    # vep_existing_variation = db.Column(db.Text)
+    # vep_distance = db.Column(db.Text)
+    # vep_strand = db.Column(db.Text)
+    # vep_flags = db.Column(db.Text)
+    # vep_variant_class = db.Column(db.Text)
+    # vep_symbol_source = db.Column(db.Text)
+    # vep_hgnc_id = db.Column(db.Text)
+    # vep_canonical = db.Column(db.Text)
+    # vep_tsl = db.Column(db.Text)
+    # vep_ccds = db.Column(db.Text)
+    # vep_ensp = db.Column(db.Text)
+    # vep_swissprot = db.Column(db.Text)
+    # vep_trembl = db.Column(db.Text)
+    # vep_uniparc = db.Column(db.Text)
+    # vep_refseq_match = db.Column(db.Text)
+    # vep_gene_pheno = db.Column(db.Text)
+    # vep_domains = db.Column(db.Text)
+    # vep_hgvs_offset = db.Column(db.Text)
+    # vep_motif_name = db.Column(db.Text)
+    # vep_motif_pos = db.Column(db.Text)
+    # vep_high_inf_pos = db.Column(db.Text)
+    # vep_motif_score_change = db.Column(db.Text)
+
+    #PoS = db.Column(db.Integer, index=True, server_default=db.text("NULL"))
+    allele_depths_raws = db.Column('SAD',db.Text, index=True, server_default=db.text("NULL"))
+    allele_freq_raws = db.Column('SAF',db.Text, index=True,server_default=db.text("NULL"))
+    allele_freq = db.Column('AF',db.Text, index=True, server_default=db.text("NULL"))
+    base_qual_rank_sum = db.Column('BaseQRankSum',db.Float, index=True, server_default=db.text("NULL"))
+    fisher_strand_bias = db.Column('FS',db.Float, index=True, server_default=db.text("NULL"))
+    map_qual_rank_sum = db.Column('MQRankSum',db.Float, index=True, server_default=db.text("NULL"))
+    read_pos_rank_sum = db.Column('ReadPosRankSum',db.Float, index=True, server_default=db.text("NULL"))
+    strand_bias_odds_ratio = db.Column('SOR',db.Float, index=True, server_default=db.text("NULL"))
+    allele_depths = db.Column('AD',db.Text, index=True, server_default=db.text("NULL"))
+
+class VcfHeader(db.Model):
+    __tablename__ = 'vcf_header'
+    vcfhid = db.Column(db.Integer, primary_key=True)
+    vcf_header = db.Column(db.Text)
+
+class Version(db.Model):
+    __tablename__ = 'version'
+    vid = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.Text)

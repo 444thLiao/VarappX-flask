@@ -41,9 +41,10 @@ def cors_handle(f):
 
 def JWT_user(user, duration=TOKEN_DURATION):
     from varappx.main.view_tools.authenticate import set_jwt
-    from varappx.main.auth_model_op.user_op import user_factory
+    from varappx.data_models.users import user_factory
     """Set a JWT with user info (username, code, email, etc.), and return it in a json response"""
     user_info = user_factory(user).expose()
+    #print(user_info)
     id_token = set_jwt(user_info, SECRET_KEY, duration)
     # example: user_info = {'username': 'admin', 'role': {'can_validate_user': 1, 'name': 'superuser', 'rank': 1, 'can_delete_user': 1}, 'email': 'l0404th@gmail.com', 'firstname': 'Tianhua', 'databases': [{'name': 'NY-7_mt2', 'description': '', 'users': ['admin'], 'size': 182466560}], 'exp': 1493019921, 'code': 'admin', 'isActive': 1, 'lastname': 'Liao'}
     return id_token
@@ -81,8 +82,9 @@ def authenticate():
         usersname = request.form['username']
         passwords = request.form['password']
         user, msgs = check_credentials(usersname, passwords)
+        #import pdb;pdb.set_trace()
         if not user:
-            pass
+            print(msgs)
         else:
             #print(user)
             login_user(user, remember=True)

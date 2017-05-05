@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a5eb8f1b1dfa
+Revision ID: 1ee294b7461d
 Revises: 
-Create Date: 2017-04-09 21:31:02.463760
+Create Date: 2017-05-03 14:09:11.435860
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a5eb8f1b1dfa'
+revision = '1ee294b7461d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,6 +32,7 @@ def upgrade():
     sa.Column('city', sa.String(length=255), nullable=True),
     sa.Column('phone', sa.String(length=30), nullable=True),
     sa.Column('is_laboratory', sa.Integer(), nullable=True),
+    sa.Column('laboratory', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('roles',
@@ -101,15 +102,14 @@ def upgrade():
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=25), nullable=True),
-    sa.Column('password', sa.String(length=255), nullable=True),
     sa.Column('salt', sa.String(length=255), nullable=True),
     sa.Column('email', sa.String(length=255), nullable=True),
     sa.Column('code', sa.String(length=25), nullable=True),
     sa.Column('activation_code', sa.String(length=25), nullable=True),
     sa.Column('is_password_reset', sa.Integer(), nullable=True),
-    sa.Column('perple_id', sa.Integer(), nullable=True),
+    sa.Column('person_id', sa.Integer(), nullable=True),
     sa.Column('role_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['perple_id'], ['people.id'], ),
+    sa.ForeignKeyConstraint(['person_id'], ['people.id'], ),
     sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username')
@@ -121,10 +121,10 @@ def upgrade():
     sa.Column('updated_by', sa.String(length=50), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user', sa.Integer(), nullable=True),
-    sa.Column('variants_db', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['user'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['variants_db'], ['variants_db.id'], ),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('variants_db_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['variants_db_id'], ['variants_db.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('history',
@@ -167,8 +167,8 @@ def upgrade():
     sa.Column('query', sa.Text(), nullable=True),
     sa.Column('description', sa.String(length=255), nullable=True),
     sa.Column('long_description', sa.Text(), nullable=True),
-    sa.Column('db_access', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['db_access'], ['db_accesses.id'], ),
+    sa.Column('db_access_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['db_access_id'], ['db_accesses.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

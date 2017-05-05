@@ -72,7 +72,7 @@
         "pk": 1,
         "fields": {
             "username": "admin",
-            "password": "abOV.DfJmdnYw",
+            "password": "admin",
             "salt": "pbkdf2:sha1:1000$ihTmdN3r$4dbe76468525ef54f0e8d70dbfbce910d48e9214",
             "email": "l0404th@gmail.com",
             "code": "admin",
@@ -92,7 +92,7 @@
             "name": "demo_mini",
             "visible_name": "demo_mini",
             "filename": "demo_mini.db",
-            "location": "resources/db/",
+            "location": "/home/liaoth/project/VarappX-flask/varappx/main/resources/db/",
             "hash": "e25b76e60082485158292750c239a2d255b742eb",
             "description": "Daemon db for test",
             "size": null,

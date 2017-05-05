@@ -7,6 +7,7 @@ import sys
 migrate = Migrate(db.app,db)
 manager = Manager(db.app)
 manager.add_command('db',MigrateCommand)
+from varappx import check_everything
 
 
 if __name__ == "__main__":
@@ -14,3 +15,4 @@ if __name__ == "__main__":
         loaddata()
     else:
         manager.run()
+        check_everything()

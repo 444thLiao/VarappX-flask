@@ -1,5 +1,5 @@
 from varappx.models.users import *
-from varappx.common.utils import normpath, random_string, sha1sum
+from varappx.common.utils import normpath, sha1sum
 from varappx.handle_config import settings
 
 import os, logging, time, datetime
@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 SQLITE_DB_PATH = settings.SQLITE_DB_PATH
 TEST_PATH = join(normpath(SQLITE_DB_PATH), settings.DB_TEST)
-#import pdb;pdb.set_trace()
 VariantsDb = VariantsDb
 
 def table_names():
@@ -76,11 +75,12 @@ def remove_db_from_settings(dbname):
 
 def remove_db_from_cache(dbname):
     """Delete all Redis keys related to *dbname*."""
-    cache = caches['redis']
-    gen_service_cache = caches['genotypes_service']
-    cache.delete_pattern("stats:{}:*".format(dbname))
-    cache.delete_pattern("gen:{}:*".format(dbname))
-    gen_service_cache.delete(dbname, None)
+    from varappx import redis_store
+    cache = redis_store.get('redis')
+    gen_service_cache = redis_store.get('genotypes_service')
+    redis_store.delete("stats:{}:*".format(dbname))
+    redis_store.delete("gen:{}:*".format(dbname))
+    #gen_service_cache.delete(dbname, None)
 
 def add_db(vdb:VariantsDb):
     """Add that db to settings, connections, and activate it"""
@@ -93,7 +93,7 @@ def add_db(vdb:VariantsDb):
 def remove_db(vdb:VariantsDb):
     """Remove that db from settings, connections, cache, and deactivate it."""
     vdb.is_active = 0
-    db.session.add(vdb)
+    db.session.delete(vdb)
     db.session.commit()
     remove_db_from_settings(vdb.name)
     remove_db_from_cache(vdb.name)
