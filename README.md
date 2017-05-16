@@ -1,2 +1,4 @@
 # VarappX-flask
-Using flask to rebuild the backend of varapp
+Using flask to refactor the backend of varapp
+
+

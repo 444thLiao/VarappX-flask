@@ -105,7 +105,8 @@ def stats(db, user=None):
     if auto_process_OPTIONS(request):
         return auto_process_OPTIONS(request)
     stat = stats_service(db).get_global_stats()
-    return jsonify(stat.expose())
+    #import pdb;pdb.set_trace()
+    return jsonify(stat)
 #
 # @json_view
 # def count(request, db, **kwargs):

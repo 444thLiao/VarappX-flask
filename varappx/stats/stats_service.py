@@ -10,7 +10,7 @@ Cached objects:
   The unpacked array has 1 at the index of each variant_id passing the filter.
 """
 from varappx.handle_config import settings
-#from varappx.common import masking
+from varappx.common import masking
 from varappx.common.utils import timer
 from varappx.constants.filters import *
 from varappx.data_models.variants import Variant
@@ -41,9 +41,10 @@ class GlobalStatsService:
         self.global_stats_key = 'stats:{}:global'.format(db)
         self.enum_values_key = 'stats:{}:enum_values'.format(db)
         self.mask_key_prefix = 'stats:{}:mask:'.format(db)
-        #self._initqs = Variant.objects.using(db)
+        #self._initqs = DB.session(bind=db)
         self._N = len(Variant.query.all())
         self._masks_ready = False
+
         if new or not CACHE or DEBUG:
             #self.cache.delete(self.service_key)
             self.cache.delete("stats:{}:*".format(db))
@@ -54,11 +55,11 @@ class GlobalStatsService:
         if not self._check_masks_ready() or not CACHE:  # generate masks and enum_values
             logging.info("[cache] unset: init filter masks for db '{}'".format(self.db))
             self._init_discrete_filter_masks()
-        if (not self.global_stats_key in self.cache) or not CACHE:  # generate global_stats and impacts
+        if (not bytes(self.global_stats_key,'utf-8') in self.cache.keys()) or not CACHE:  # generate global_stats and impacts
             logging.info("[cache] unset: init global stats for db '{}'".format(self.db))
             global_stats = self._init_global_stats()
             self.save_global_stats(global_stats)
-        #self.cache.set(self.service_key, 1, timeout=STATS_CACHE_TIMEOUT)
+        #self.cache.set(self.service_key, 1, ex=STATS_CACHE_TIMEOUT)
         return self
 
     def make_stats(self, variant_ids):
@@ -93,7 +94,7 @@ class GlobalStatsService:
     def save_mask(self, mask, filter_name, value):
         """Cache the enum mask for that filter name and value"""
         key = self.key_mask(filter_name, value)
-        self.cache.set(key, mask.tostring(), timeout=STATS_CACHE_TIMEOUT)
+        self.cache.set(key, mask.tostring(), ex=STATS_CACHE_TIMEOUT)
 
     def get_mask(self, filter_name, value):
         """Retreive from cache the mask for that filter name and value"""
@@ -104,21 +105,28 @@ class GlobalStatsService:
 
     def save_enum_values(self, v):
         """Cache the enum_values dict ({filter_name: [possible_values]})"""
-        self.cache.set(self.enum_values_key, v, timeout=STATS_CACHE_TIMEOUT)
+        self.cache.set(self.enum_values_key, v, ex=STATS_CACHE_TIMEOUT)
 
     def get_enum_values(self):
         """Retreive from cache the enum_values dict"""
         self.cache.expire(self.enum_values_key, STATS_CACHE_TIMEOUT)
-        return self.cache.get(self.enum_values_key)
+
+        b_data = self.cache.get(self.enum_values_key)
+        #import pdb;pdb.set_trace()
+        b_data2 = eval('%s' % b_data.decode('utf-8'))
+        return b_data2
 
     def save_global_stats(self, g):
         """Cache the global_stats object"""
-        self.cache.set(self.global_stats_key, g, timeout=STATS_CACHE_TIMEOUT)
+        self.cache.set(self.global_stats_key, g, ex=STATS_CACHE_TIMEOUT)
 
     def get_global_stats(self):
         """Retreive from cache the global_stats:VariantStats object"""
         self.cache.expire(self.enum_values_key, STATS_CACHE_TIMEOUT)
-        return self.cache.get(self.global_stats_key)
+        b_data = self.cache.get(self.global_stats_key)
+        b_data = b_data.decode('utf-8').replace('None',"'None'")
+        b_data2 = eval('%s' % b_data)
+        return b_data2
 
     ## Initialization - private methods
 
@@ -129,18 +137,20 @@ class GlobalStatsService:
         stats = {}
         stats.update(self._counts_enum())
         stats.update(self._stats_continuous())
-        global_stats = VariantStats(stats, self._N)
+        global_stats = VariantStats(stats, self._N).expose()
         return global_stats
 
     def _stats_continuous(self):
         """Return a map `{filter_name: StatsContinuous}`,
            storing the values distribution, min/max, etc."""
+        from varappx.handle_init import db as DB
+
         stats_continuous = {}
         translated = [TRANSLATION.get(f,f) for f in CONTINUOUS_FILTER_NAMES]
         minmax_query = ','.join(['MIN({}),MAX({})'.format(f,f) for f in translated])
-        cursor = connections[self.db].cursor()
-        cursor.execute('SELECT {} FROM variants'.format(minmax_query))
-        minmax = cursor.fetchone()  # [min, max, min, max, ...]
+        eng = DB.create_engine(settings.SQLALCHEMY_BINDS[self.db]).connect()
+        one_result = eng.execute('SELECT {} FROM variants'.format(minmax_query))
+        minmax = one_result.fetchone()  # [min, max, min, max, ...]
         minmax = [{'min':x[0], 'max':x[1]} for x in zip(minmax[::2], minmax[1::2])]
         for i,f in enumerate(CONTINUOUS_FILTER_NAMES):
             stats_continuous[f] = StatsContinuous(minmax[i])
@@ -167,12 +177,13 @@ class GlobalStatsService:
 
     def _check_masks_ready(self):
         """Check that masks are in the cache for all enum filters"""
-        if self.enum_values_key in self.cache:
+        if bytes(self.enum_values_key,'utf-8') in self.cache.keys():
             enum_values = self.get_enum_values()
             ready = True
+
             for fname, vals in enum_values.items():
                 for val in vals:
-                    if not self.key_mask(fname, val) in self.cache:
+                    if not bytes(self.key_mask(fname, val),'utf-8') in self.cache.keys():
                         ready = False
         else:
             ready = False
@@ -183,14 +194,15 @@ class GlobalStatsService:
     def _init_discrete_filter_masks(self):
         """Create an array of passing ids for every discrete valued filter.
            :rtype: dict `{filter_name: {value: [ids]}}`"""
+        from varappx.handle_init import db as DB
         translated = tuple(TRANSLATION.get(f,f) for f in ['variant_id']+DISCRETE_FILTER_NAMES)
-        cursor = connections[self.db].cursor()
-        cursor.execute("SELECT {} FROM variants".format(','.join(translated)))
+        eng = DB.create_engine(settings.SQLALCHEMY_BINDS[self.db]).connect()
+        one_result = eng.execute("SELECT {} FROM variants".format(','.join(translated)))
         # Create a variants mask per couple (filter, value), with 1 at indices corresponding to passing variants
         variant_masks = {t:defaultdict(partial(np.zeros, self._N, dtype=np.bool_)) for t in DISCRETE_FILTER_NAMES}
         enum_values = {t:set() for t in DISCRETE_FILTER_NAMES}
         irange = range(1,len(translated))
-        for row in cursor:
+        for row in one_result.fetchall():
             vid = row[0]  # variant id
             for i in irange:
                 val = row[i]
@@ -208,10 +220,11 @@ class GlobalStatsService:
     def _init_impacts(self):
         """Return a dict {impact_severity: [impact_terms]}.
            It is added to global stats, so no need to cache it separately."""
-        cursor = connections[self.db].cursor()
-        cursor.execute("""SELECT impact_severity, group_concat(distinct impact) FROM variants
+        from varappx.handle_init import db as DB
+        eng = DB.create_engine(settings.SQLALCHEMY_BINDS[self.db]).connect()
+        one_result = eng.execute("""SELECT impact_severity, group_concat(distinct impact) FROM variants
                           WHERE impact IS NOT NULL GROUP BY impact_severity;""")
-        impacts = {row[0]: row[1].split(',') for row in cursor}
+        impacts = {row[0]: row[1].split(',') for row in one_result}
         return impacts
 
 

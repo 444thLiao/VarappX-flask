@@ -1,5 +1,5 @@
 import numpy as np
-from varappx.common.utils import timer
+#from varappx.common.utils import timer
 
 
 def to_binary_array(a, size):

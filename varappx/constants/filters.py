@@ -30,7 +30,7 @@ FREQUENCY_FILTER_NAMES = ['aaf_1kg_all', 'aaf_esp_all', 'aaf_exac_all', 'aaf_max
 # 0 to 1, null has pval=1
 PVALUE_FILTER_NAMES = [] #['gerp_element_pval']
 # unbound
-CONTINUOUS_FILTER_NAMES = ['quality', 'cadd_raw', 'cadd_scaled', 'gerp_bp_score',
+CONTINUOUS_FILTER_NAMES = ['qual', 'cadd_raw', 'cadd_scaled', 'gerp_bp_score',
                            'qual_depth', 'fisher_strand_bias', 'strand_bias_odds_ratio', 'rms_map_qual',
                            'base_qual_rank_sum', 'map_qual_rank_sum', 'read_pos_rank_sum']
 
